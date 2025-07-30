@@ -18,7 +18,11 @@ fn main() {
         }
     }
 }
-fn add_task() {}
+fn add_task(tasks: &mut Vec<String>, rl: &mut rustyline::DefaultEditor) {
+    println!("Please enter the task name:");
+    let user_input = input(rl);
+    tasks.push(user_input);
+}
 
 fn input(rl: &mut rustyline::DefaultEditor) -> String {
     let readline = rl.readline(">> ");
