@@ -11,6 +11,10 @@ fn main() {
         match input(&mut rl).as_str() {
             "add" => add_task(&mut tasks, &mut rl),
             "list" => println!("{:?}", tasks),
+            "+!$EXIT$!+" => {
+                println!("Exiting and Saving!");
+                break;
+            }
             _ => {
                 println!(
                     "Heyo! Thats a command I ain't got in me dictionary, so cant do nothin soz :("
