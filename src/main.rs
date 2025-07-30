@@ -4,8 +4,14 @@ use rustyline::error::ReadlineError;
 fn main() {
     let mut rl = DefaultEditor::new().unwrap();
     let mut tasks: Vec<String> = Vec::new();
+    const COMMANDS: [&str; 4] = [
+        "add - adds a task",
+        "list - lists the tasks",
+        "exit - quits the program",
+        "help - prints this message",
+    ];
 
-    println!("Welcome to Let's Do It! Please type \"exit\" to exit the program");
+    println!("Welcome to Let's Do It! Please type \"help\" to see all possible commands");
 
     loop {
         match input(&mut rl).to_lowercase().as_str() {
@@ -14,7 +20,14 @@ fn main() {
                 let mut i = 1;
                 for task in &tasks {
                     println!("{}. {}", i, task);
-                    i = i + 1;
+                    i += 1;
+                }
+            }
+            "help" => {
+                let mut i = 1;
+                for command in COMMANDS {
+                    println!("{}. {}", i, command);
+                    i += 1;
                 }
             }
             "+!$exit$!+" => {
