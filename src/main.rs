@@ -42,7 +42,7 @@ fn add_task(tasks: &mut Vec<String>, rl: &mut DefaultEditor) {
 
 fn input(rl: &mut DefaultEditor) -> String {
     let readline = rl.readline(">> ");
-    const EXIT_COMMANDS: [&str; 4] = ["exit", "quit", "q", "logout"];
+    const EXIT_COMMANDS: [&str; 5] = ["exit", "quit", "q", "logout", "quit"];
 
     match readline {
         Ok(line) => {
