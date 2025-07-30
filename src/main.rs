@@ -10,15 +10,21 @@ fn main() {
     loop {
         match input(&mut rl).to_lowercase().as_str() {
             "add" => add_task(&mut tasks, &mut rl),
-            "list" => println!("{:?}", tasks),
-            "+!$EXIT$!+" => {
+            "list" => {
+                let mut i = 1;
+                for task in &tasks {
+                    println!("{}. {}", i, task);
+                    i = i + 1;
+                }
+            }
+            "+!$exit$!+" => {
                 println!("Exiting and Saving!");
                 break;
             }
-            "+!$INTERRUPTED$!+" => {
+            "+!$interrupted$!+" => {
                 println!("Interrupted! If you wish to exit, please type \"exit\" or do CTRL+D")
             }
-            "+!$ERROR$!+" => println!("Error occurred while taking user input"),
+            "+!$error$!+" => println!("Error occurred while taking user input"),
             _ => {
                 println!(
                     "Heyo! Thats a command I ain't got in me dictionary, so cant do nothin soz :("
@@ -42,13 +48,13 @@ fn input(rl: &mut DefaultEditor) -> String {
             line.trim().parse().unwrap()
         }
 
-        Err(ReadlineError::Interrupted) => "+!$INTERRUPTED$!+".parse().unwrap(),
+        Err(ReadlineError::Interrupted) => "+!$interrupted$!+".parse().unwrap(),
 
-        Err(ReadlineError::Eof) => "+!$EXIT$!+".parse().unwrap(),
+        Err(ReadlineError::Eof) => "+!$exit$!+".parse().unwrap(),
 
         Err(err) => {
             eprintln!("Error occurred while taking user input {}", err);
-            "+!$ERROR$!+".parse().unwrap()
+            "+!$error$!+".parse().unwrap()
         }
     }
 }
