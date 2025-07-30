@@ -41,11 +41,16 @@ fn add_task(tasks: &mut Vec<String>, rl: &mut DefaultEditor) {
 
 fn input(rl: &mut DefaultEditor) -> String {
     let readline = rl.readline(">> ");
+    const EXIT_COMMANDS: [&str; 4] = ["exit", "quit", "q", "logout"];
 
     match readline {
         Ok(line) => {
             rl.add_history_entry(line.as_str()).unwrap();
-            line.trim().parse().unwrap()
+            if EXIT_COMMANDS.contains(&line.trim()) {
+                "+!$exit$!+".parse().unwrap()
+            } else {
+                line.trim().parse().unwrap()
+            }
         }
 
         Err(ReadlineError::Interrupted) => "+!$interrupted$!+".parse().unwrap(),
