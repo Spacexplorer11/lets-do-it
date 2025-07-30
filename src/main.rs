@@ -35,8 +35,9 @@ fn main() {
 }
 fn add_task(tasks: &mut Vec<String>, rl: &mut DefaultEditor) {
     println!("Please enter the task name:");
-    let user_input = input(rl);
-    tasks.push(user_input);
+    let task = input(rl);
+    println!("Task \"{}\" added successfully!", &task);
+    tasks.push(task);
 }
 
 fn input(rl: &mut DefaultEditor) -> String {
