@@ -17,10 +17,14 @@ fn main() {
         match input(&mut rl).to_lowercase().as_str() {
             "add" => add_task(&mut tasks, &mut rl),
             "list" => {
-                let mut i = 1;
-                for task in &tasks {
-                    println!("{}. {}", i, task);
-                    i += 1;
+                if tasks.len() > 1 {
+                    let mut i = 1;
+                    for task in &tasks {
+                        println!("{}. {}", i, task);
+                        i += 1;
+                    }
+                } else {
+                    println!("You have no tasks!")
                 }
             }
             "help" => {
