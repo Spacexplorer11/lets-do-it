@@ -18,6 +18,7 @@ fn main() {
             "+!$INTERRUPTED$!+" => {
                 println!("Interrupted! If you wish to exit, please type \"exit\" or do CTRL+D")
             }
+            "+!$ERROR$!+" => println!("Error occurred while taking user input"),
             _ => {
                 println!(
                     "Heyo! Thats a command I ain't got in me dictionary, so cant do nothin soz :("
@@ -26,13 +27,13 @@ fn main() {
         }
     }
 }
-fn add_task(tasks: &mut Vec<String>, rl: &mut rustyline::DefaultEditor) {
+fn add_task(tasks: &mut Vec<String>, rl: &mut DefaultEditor) {
     println!("Please enter the task name:");
     let user_input = input(rl);
     tasks.push(user_input);
 }
 
-fn input(rl: &mut rustyline::DefaultEditor) -> String {
+fn input(rl: &mut DefaultEditor) -> String {
     let readline = rl.readline(">> ");
 
     match readline {
@@ -41,13 +42,16 @@ fn input(rl: &mut rustyline::DefaultEditor) -> String {
 
             let parts: Vec<&str> = line.trim().split_whitespace().collect();
             let command = parts.first().unwrap_or(&"");
-            line
+            command.parse().unwrap()
         }
 
         Err(ReadlineError::Interrupted) => "+!$INTERRUPTED$!+".parse().unwrap(),
 
         Err(ReadlineError::Eof) => "+!$EXIT$!+".parse().unwrap(),
 
-        Err(err) => "+!$ERROR$!+".parse().unwrap(),
+        Err(err) => {
+            eprintln!("Error occurred while taking user input {}", err);
+            "+!$ERROR$!+".parse().unwrap()
+        }
     }
 }
