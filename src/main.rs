@@ -9,7 +9,8 @@ fn main() {
 
     loop {
         match input(&mut rl).as_str() {
-            "add" => add_task(),
+            "add" => add_task(&mut tasks, &mut rl),
+            "list" => println!("{:?}", tasks),
             _ => {
                 println!(
                     "Heyo! Thats a command I ain't got in me dictionary, so cant do nothin soz :("
