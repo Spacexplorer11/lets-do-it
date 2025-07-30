@@ -15,6 +15,9 @@ fn main() {
                 println!("Exiting and Saving!");
                 break;
             }
+            "+!$INTERRUPTED$!+" => {
+                println!("Interrupted! If you wish to exit, please type \"exit\" or do CTRL+D")
+            }
             _ => {
                 println!(
                     "Heyo! Thats a command I ain't got in me dictionary, so cant do nothin soz :("
