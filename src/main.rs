@@ -8,7 +8,7 @@ fn main() {
     println!("Welcome to Let's Do It! Please type \"exit\" to exit the program");
 
     loop {
-        match input(&mut rl).as_str() {
+        match input(&mut rl).to_lowercase().as_str() {
             "add" => add_task(&mut tasks, &mut rl),
             "list" => println!("{:?}", tasks),
             "+!$EXIT$!+" => {
@@ -39,10 +39,7 @@ fn input(rl: &mut DefaultEditor) -> String {
     match readline {
         Ok(line) => {
             rl.add_history_entry(line.as_str()).unwrap();
-
-            let parts: Vec<&str> = line.trim().split_whitespace().collect();
-            let command = parts.first().unwrap_or(&"");
-            command.parse().unwrap()
+            line.trim().parse().unwrap()
         }
 
         Err(ReadlineError::Interrupted) => "+!$INTERRUPTED$!+".parse().unwrap(),
