@@ -37,6 +37,7 @@ fn main() {
                     i += 1;
                 }
             }
+            "update" => update_task(&mut tasks, &mut rl),
             "+!$exit$!+" => {
                 println!("Exiting and Saving!");
                 break;
@@ -59,6 +60,8 @@ fn add_task(tasks: &mut HashMap<String, bool>, rl: &mut DefaultEditor) {
     println!("Task \"{}\" added successfully!", &task);
     tasks.insert(task, false); // false because its not done obvs
 }
+
+fn update_task(tasks: &mut HashMap<String, bool>, rl: &mut DefaultEditor) {}
 
 fn input(rl: &mut DefaultEditor) -> String {
     let readline = rl.readline(">> ");
