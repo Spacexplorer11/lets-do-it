@@ -1,9 +1,10 @@
 use rustyline::DefaultEditor;
 use rustyline::error::ReadlineError;
+use std::collections::HashMap;
 
 fn main() {
     let mut rl = DefaultEditor::new().unwrap();
-    let mut tasks: Vec<String> = Vec::new();
+    let mut tasks: HashMap<String, bool> = HashMap::new();
     const COMMANDS: [&str; 4] = [
         "add - adds a task",
         "list - lists the tasks",
@@ -19,8 +20,9 @@ fn main() {
             "list" => {
                 if tasks.len() > 1 {
                     let mut i = 1;
-                    for task in &tasks {
-                        println!("{}. {}", i, task);
+                    for (task, &done) in &tasks {
+                        let done_str = if done { "done" } else { "not done" };
+                        println!("{}. {} - {}", i, task, done_str);
                         i += 1;
                     }
                 } else {
@@ -50,11 +52,11 @@ fn main() {
         }
     }
 }
-fn add_task(tasks: &mut Vec<String>, rl: &mut DefaultEditor) {
+fn add_task(tasks: &mut HashMap<String, bool>, rl: &mut DefaultEditor) {
     println!("Please enter the task name:");
     let task = input(rl);
     println!("Task \"{}\" added successfully!", &task);
-    tasks.push(task);
+    tasks.insert(task, false); // false because its not done obvs
 }
 
 fn input(rl: &mut DefaultEditor) -> String {
