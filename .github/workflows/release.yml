@@ -65,6 +65,18 @@ jobs:
           git tag $NEW_TAG
           git push origin $NEW_TAG
 
+      - name: Install required Rust targets (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          rustup target add x86_64-apple-darwin
+          rustup target add aarch64-apple-darwin
+
+      - name: Install required Rust targets (Linux cross for Windows)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          rustup target add x86_64-pc-windows-gnu
+          rustup target add aarch64-pc-windows-gnu
+
       - name: Build & release all targets
         if: matrix.os == 'ubuntu-latest'
         uses: rust-build/rust-build.action@v1.4.5
