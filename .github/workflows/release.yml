@@ -19,21 +19,34 @@ jobs:
       - name: Determine latest tag
         id: tag
         run: |
-          echo "LATEST_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || echo 'v0.0.0')" >> $GITHUB_ENV
+          latest=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || echo "v0.0.0")
+          echo "LATEST_TAG=$latest" >> $GITHUB_ENV
+          echo "LATEST_TAG=$latest" >> $GITHUB_OUTPUT
 
       - name: Decide next version
         id: semver
         run: |
+          [ -z "$LATEST_TAG" ] && LATEST_TAG="v0.0.0"
           bump="patch"
-          if git log $LATEST_TAG..HEAD | grep -q "BREAKING CHANGE:"; then bump="major"; elif git log $LATEST_TAG..HEAD | grep -q "^feat:"; then bump="minor"; fi
-          VERSION=$LATEST_TAG
-          IFS='.' read -r _ MA MI PS <<< "${VERSION#v}"
-          if [ "$bump" = "major" ]; then let MA+=1; MI=0; PS=0
-          elif [ "$bump" = "minor" ]; then let MI+=1; PS=0
-          else let PS+=1
+          if git log "$LATEST_TAG"..HEAD | grep -q "BREAKING CHANGE:"; then
+            bump="major"
+          elif git log "$LATEST_TAG"..HEAD | grep -q "^feat:"; then
+            bump="minor"
           fi
-          NEW="v$MA.$MI.$PS"
-          echo "NEW_TAG=$NEW" >> $GITHUB_ENV
+
+          IFS='.' read -r MA MI PS <<< "${LATEST_TAG#v}"
+
+          if [ "$bump" = "major" ]; then
+            MA=$((MA+1)); MI=0; PS=0
+          elif [ "$bump" = "minor" ]; then
+            MI=$((MI+1)); PS=0
+          else
+            PS=$((PS+1))
+          fi
+
+          NEW_TAG="v$MA.$MI.$PS"
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_OUTPUT
 
       - name: Generate release notes
         run: |
