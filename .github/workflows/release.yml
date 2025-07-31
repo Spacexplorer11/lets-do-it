@@ -1,0 +1,97 @@
+name: Release Let’s Do It
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run tests
+        run: cargo test --all --locked
+
+      - name: Determine latest tag
+        id: tag
+        run: |
+          echo "LATEST_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || echo 'v0.0.0')" >> $GITHUB_ENV
+
+      - name: Decide next version
+        id: semver
+        run: |
+          bump="patch"
+          if git log $LATEST_TAG..HEAD | grep -q "BREAKING CHANGE:"; then bump="major"; elif git log $LATEST_TAG..HEAD | grep -q "^feat:"; then bump="minor"; fi
+          VERSION=$LATEST_TAG
+          IFS='.' read -r _ MA MI PS <<< "${VERSION#v}"
+          if [ "$bump" = "major" ]; then let MA+=1; MI=0; PS=0
+          elif [ "$bump" = "minor" ]; then let MI+=1; PS=0
+          else let PS+=1
+          fi
+          NEW="v$MA.$MI.$PS"
+          echo "NEW_TAG=$NEW" >> $GITHUB_ENV
+
+      - name: Generate release notes
+        run: |
+          git log $LATEST_TAG..HEAD --pretty=format:"- %s" > release-notes.md
+
+      - name: Push new tag
+        run: |
+          git tag $NEW_TAG
+          git push origin $NEW_TAG
+
+      - name: Build & release all targets
+        uses: rust-build/rust-build.action@v1.4.5
+        with:
+          RUSTTARGET: x86_64-unknown-linux-gnu
+          ARCHIVE_TYPES: zip,tar.gz
+          ARCHIVE_NAME: lets-do-it-linux-x86_64
+          UPLOAD_MODE: release
+      - name: Build Linux ARM64
+        uses: rust-build/rust-build.action@v1.4.5
+        with:
+          RUSTTARGET: aarch64-unknown-linux-gnu
+          ARCHIVE_TYPES: zip,tar.gz
+          ARCHIVE_NAME: lets-do-it-linux-arm64
+          UPLOAD_MODE: release
+      - name: Build macOS x86_64
+        uses: rust-build/rust-build.action@v1.4.5
+        with:
+          RUSTTARGET: x86_64-apple-darwin
+          ARCHIVE_TYPES: zip
+          ARCHIVE_NAME: lets-do-it-macos-x86_64
+          UPLOAD_MODE: release
+      - name: Build macOS ARM64
+        uses: rust-build/rust-build.action@v1.4.5
+        with:
+          RUSTTARGET: aarch64-apple-darwin
+          ARCHIVE_TYPES: zip
+          ARCHIVE_NAME: lets-do-it-macos-arm64
+          UPLOAD_MODE: release
+      - name: Build Windows x86_64
+        uses: rust-build/rust-build.action@v1.4.5
+        with:
+          RUSTTARGET: x86_64-pc-windows-gnu
+          ARCHIVE_TYPES: zip
+          ARCHIVE_NAME: lets-do-it-windows-x86_64
+          UPLOAD_MODE: release
+      - name: Build Windows ARM64
+        uses: rust-build/rust-build.action@v1.4.5
+        with:
+          RUSTTARGET: aarch64-pc-windows-gnu
+          ARCHIVE_TYPES: zip
+          ARCHIVE_NAME: lets-do-it-windows-arm64
+          UPLOAD_MODE: release
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.NEW_TAG }}
+          name: Release ${{ env.NEW_TAG }}
+          body_path: release-notes.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
