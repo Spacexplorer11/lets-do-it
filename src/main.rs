@@ -54,9 +54,13 @@ fn add_task(tasks: &mut IndexMap<String, bool>, rl: &mut DefaultEditor) -> bool 
             return false;
         }
         "+!$interrupted$!+" => {
-            println!("Interrupted! If you wish to exit, please type \"exit\" or do CTRL+D")
+            println!("Interrupted! If you wish to exit, please type \"exit\" or do CTRL+D");
+            return true;
         }
-        "+!$error$!+" => println!("Error occurred while taking user input"),
+        "+!$error$!+" => {
+            println!("Error occurred while taking user input");
+            return true;
+        }
         _ => {}
     }
     println!("Task \"{}\" added successfully!", &task);
@@ -74,9 +78,13 @@ fn update_task(tasks: &mut IndexMap<String, bool>, rl: &mut DefaultEditor) -> bo
             return false;
         }
         "+!$interrupted$!+" => {
-            println!("Interrupted! If you wish to exit, please type \"exit\" or do CTRL+D")
+            println!("Interrupted! If you wish to exit, please type \"exit\" or do CTRL+D");
+            return true;
         }
-        "+!$error$!+" => println!("Error occurred while taking user input"),
+        "+!$error$!+" => {
+            println!("Error occurred while taking user input");
+            return true;
+        }
         _ => {}
     }
     if !task.parse::<i32>().is_ok() {
