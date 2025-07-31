@@ -1,10 +1,10 @@
+use indexmap::IndexMap;
 use rustyline::DefaultEditor;
 use rustyline::error::ReadlineError;
-use std::collections::HashMap;
 
 fn main() {
     let mut rl = DefaultEditor::new().unwrap();
-    let mut tasks: HashMap<String, bool> = HashMap::new();
+    let mut tasks: IndexMap<String, bool> = IndexMap::new();
     const COMMANDS: [&str; 5] = [
         "add - adds a task",
         "list - lists the tasks",
@@ -43,17 +43,39 @@ fn main() {
         }
     }
 }
-fn add_task(tasks: &mut HashMap<String, bool>, rl: &mut DefaultEditor) {
+fn add_task(tasks: &mut IndexMap<String, bool>, rl: &mut DefaultEditor) {
     println!("Please enter the task name:");
     let task = input(rl);
     println!("Task \"{}\" added successfully!", &task);
     tasks.insert(task, false); // false because its not done obvs
 }
 
-fn update_task(tasks: &mut HashMap<String, bool>, rl: &mut DefaultEditor) {}
+fn update_task(tasks: &mut IndexMap<String, bool>, rl: &mut DefaultEditor) {
+    println!("Which task would you like to update? (Pls type the number)");
+    list_tasks(&tasks);
+    let task = input(rl);
+    if !task.parse::<i32>().is_ok() {
+        println!("You didn't enter a number! :( Please try again.");
+        return;
+    }
+    let task = task.parse::<usize>().unwrap();
+    if task > tasks.len() || task < 1 {
+        println!("The number you entered is out of range! :( Please try again!");
+        return;
+    }
+    let task = tasks.get_index(task - 1).map(|(k, _)| k.clone()).unwrap();
+    let old_value = tasks.get(&task).unwrap();
+    let new_value = !old_value;
+    println!(
+        "Successfully updated task {}! It's now marked as {}",
+        task,
+        if new_value { "done" } else { "not done" }
+    );
+    tasks.insert(task, new_value);
+}
 
-fn list_tasks(tasks: &HashMap<String, bool>) {
-    if tasks.len() > 1 {
+fn list_tasks(tasks: &IndexMap<String, bool>) {
+    if tasks.len() >= 1 {
         let mut i = 1;
         for (task, &done) in tasks {
             let done_str = if done { "done" } else { "not done" };
