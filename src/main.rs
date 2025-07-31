@@ -115,6 +115,41 @@ fn update_task(tasks: &mut IndexMap<String, bool>, rl: &mut DefaultEditor) -> bo
 }
 
 fn delete_task(tasks: &mut IndexMap<String, bool>, rl: &mut DefaultEditor) -> bool {
+    if tasks.len() == 0 {
+        println!("You have no tasks to delete!");
+        return true;
+    }
+    println!("Which task would you like to delete? (Pls type the number)");
+    list_tasks(&tasks);
+    let task = input(rl);
+    match task.as_str() {
+        "+!$exit$!+" => {
+            println!("Exiting and Saving!");
+            return false;
+        }
+        "+!$interrupted$!+" => {
+            println!("Interrupted! If you wish to exit, please type \"exit\" or do CTRL+D");
+            return true;
+        }
+        "+!$error$!+" => {
+            println!("Error occurred while taking user input");
+            return true;
+        }
+        _ => {}
+    }
+    if !task.parse::<i32>().is_ok() {
+        println!("You didn't enter a number! :( Please try again.");
+        return true;
+    }
+    let task = task.parse::<usize>().unwrap();
+    if task > tasks.len() || task < 1 {
+        println!("The number you entered is out of range! :( Please try again!");
+        return true;
+    }
+    let task = tasks.get_index(task - 1).map(|(k, _)| k.clone()).unwrap();
+
+    println!("Successfully deleted task \"{}\"!", task);
+    tasks.swap_remove(&task);
     true
 }
 
