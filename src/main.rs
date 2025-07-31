@@ -26,6 +26,7 @@ fn main() {
                     i += 1;
                 }
             }
+            "" => {}
             "update" => update_task(&mut tasks, &mut rl),
             "+!$exit$!+" => {
                 println!("Exiting and Saving!");
