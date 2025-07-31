@@ -5,6 +5,7 @@ use rustyline::error::ReadlineError;
 fn main() {
     let mut rl = DefaultEditor::new().unwrap();
     let mut tasks: IndexMap<String, bool> = IndexMap::new();
+    let mut running = true;
     const COMMANDS: [&str; 5] = [
         "add - adds a task",
         "list - lists the tasks",
@@ -15,9 +16,9 @@ fn main() {
 
     println!("Welcome to Let's Do It! Please type \"help\" to see all possible commands");
 
-    loop {
+    while running {
         match input(&mut rl).to_lowercase().as_str() {
-            "add" => add_task(&mut tasks, &mut rl),
+            "add" => running = add_task(&mut tasks, &mut rl),
             "list" => list_tasks(&tasks),
             "help" => {
                 let mut i = 1;
@@ -27,7 +28,7 @@ fn main() {
                 }
             }
             "" => {}
-            "update" => update_task(&mut tasks, &mut rl),
+            "update" => running = update_task(&mut tasks, &mut rl),
             "+!$exit$!+" => {
                 println!("Exiting and Saving!");
                 break;
@@ -44,25 +45,48 @@ fn main() {
         }
     }
 }
-fn add_task(tasks: &mut IndexMap<String, bool>, rl: &mut DefaultEditor) {
+fn add_task(tasks: &mut IndexMap<String, bool>, rl: &mut DefaultEditor) -> bool {
     println!("Please enter the task name:");
     let task = input(rl);
+    match task.as_str() {
+        "+!$exit$!+" => {
+            println!("Exiting and Saving!");
+            return false;
+        }
+        "+!$interrupted$!+" => {
+            println!("Interrupted! If you wish to exit, please type \"exit\" or do CTRL+D")
+        }
+        "+!$error$!+" => println!("Error occurred while taking user input"),
+        _ => {}
+    }
     println!("Task \"{}\" added successfully!", &task);
     tasks.insert(task, false); // false because its not done obvs
+    true
 }
 
-fn update_task(tasks: &mut IndexMap<String, bool>, rl: &mut DefaultEditor) {
+fn update_task(tasks: &mut IndexMap<String, bool>, rl: &mut DefaultEditor) -> bool {
     println!("Which task would you like to update? (Pls type the number)");
     list_tasks(&tasks);
     let task = input(rl);
+    match task.as_str() {
+        "+!$exit$!+" => {
+            println!("Exiting and Saving!");
+            return false;
+        }
+        "+!$interrupted$!+" => {
+            println!("Interrupted! If you wish to exit, please type \"exit\" or do CTRL+D")
+        }
+        "+!$error$!+" => println!("Error occurred while taking user input"),
+        _ => {}
+    }
     if !task.parse::<i32>().is_ok() {
         println!("You didn't enter a number! :( Please try again.");
-        return;
+        return true;
     }
     let task = task.parse::<usize>().unwrap();
     if task > tasks.len() || task < 1 {
         println!("The number you entered is out of range! :( Please try again!");
-        return;
+        return true;
     }
     let task = tasks.get_index(task - 1).map(|(k, _)| k.clone()).unwrap();
     let old_value = tasks.get(&task).unwrap();
@@ -73,6 +97,7 @@ fn update_task(tasks: &mut IndexMap<String, bool>, rl: &mut DefaultEditor) {
         if new_value { "done" } else { "not done" }
     );
     tasks.insert(task, new_value);
+    true
 }
 
 fn list_tasks(tasks: &IndexMap<String, bool>) {
