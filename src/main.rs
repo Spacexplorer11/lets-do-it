@@ -18,18 +18,7 @@ fn main() {
     loop {
         match input(&mut rl).to_lowercase().as_str() {
             "add" => add_task(&mut tasks, &mut rl),
-            "list" => {
-                if tasks.len() > 1 {
-                    let mut i = 1;
-                    for (task, &done) in &tasks {
-                        let done_str = if done { "done" } else { "not done" };
-                        println!("{}. {} - {}", i, task, done_str);
-                        i += 1;
-                    }
-                } else {
-                    println!("You have no tasks!")
-                }
-            }
+            "list" => list_tasks(&tasks),
             "help" => {
                 let mut i = 1;
                 for command in COMMANDS {
@@ -62,6 +51,19 @@ fn add_task(tasks: &mut HashMap<String, bool>, rl: &mut DefaultEditor) {
 }
 
 fn update_task(tasks: &mut HashMap<String, bool>, rl: &mut DefaultEditor) {}
+
+fn list_tasks(tasks: &HashMap<String, bool>) {
+    if tasks.len() > 1 {
+        let mut i = 1;
+        for (task, &done) in tasks {
+            let done_str = if done { "done" } else { "not done" };
+            println!("{}. {} - {}", i, task, done_str);
+            i += 1;
+        }
+    } else {
+        println!("You have no tasks!")
+    }
+}
 
 fn input(rl: &mut DefaultEditor) -> String {
     let readline = rl.readline(">> ");
