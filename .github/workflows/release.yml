@@ -60,14 +60,14 @@ jobs:
       - name: Build & release all targets
         uses: rust-build/rust-build.action@v1.4.5
         with:
-          RUSTTARGET: x86_64-unknown-linux-gnu
+          RUSTTARGET: x86_64-unknown-linux-musl
           ARCHIVE_TYPES: zip,tar.gz
           ARCHIVE_NAME: lets-do-it-linux-x86_64
           UPLOAD_MODE: release
       - name: Build Linux ARM64
         uses: rust-build/rust-build.action@v1.4.5
         with:
-          RUSTTARGET: aarch64-unknown-linux-gnu
+          RUSTTARGET: aarch64-unknown-linux-musl
           ARCHIVE_TYPES: zip,tar.gz
           ARCHIVE_NAME: lets-do-it-linux-arm64
           UPLOAD_MODE: release
