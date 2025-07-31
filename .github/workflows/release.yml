@@ -66,6 +66,7 @@ jobs:
           git push origin $NEW_TAG
 
       - name: Build & release all targets
+        if: matrix.os == 'ubuntu-latest'
         uses: rust-build/rust-build.action@v1.4.5
         with:
           RUSTTARGET: x86_64-unknown-linux-musl
@@ -95,6 +96,7 @@ jobs:
           UPLOAD_MODE: release
 
       - name: Build Windows x86_64
+        if: matrix.os == 'ubuntu-latest'
         uses: rust-build/rust-build.action@v1.4.5
         with:
           RUSTTARGET: x86_64-pc-windows-gnu
@@ -104,6 +106,7 @@ jobs:
           UPLOAD_MODE: release
 
       - name: Build Windows ARM64
+        if: matrix.os == 'ubuntu-latest'
         uses: rust-build/rust-build.action@v1.4.5
         with:
           RUSTTARGET: aarch64-pc-windows-gnu
