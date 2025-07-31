@@ -6,12 +6,13 @@ fn main() {
     let mut rl = DefaultEditor::new().unwrap();
     let mut tasks: IndexMap<String, bool> = IndexMap::new();
     let mut running = true;
-    const COMMANDS: [&str; 5] = [
+    const COMMANDS: [&str; 6] = [
         "add - adds a task",
         "list - lists the tasks",
         "exit - quits the program",
         "help - prints this message",
         "update - updates if a task is done or not!",
+        "delete - deletes a task",
     ];
 
     println!("Welcome to Let's Do It! Please type \"help\" to see all possible commands");
