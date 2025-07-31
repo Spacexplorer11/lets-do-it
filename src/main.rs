@@ -5,11 +5,12 @@ use std::collections::HashMap;
 fn main() {
     let mut rl = DefaultEditor::new().unwrap();
     let mut tasks: HashMap<String, bool> = HashMap::new();
-    const COMMANDS: [&str; 4] = [
+    const COMMANDS: [&str; 5] = [
         "add - adds a task",
         "list - lists the tasks",
         "exit - quits the program",
         "help - prints this message",
+        "update - updates if a task is done or not!",
     ];
 
     println!("Welcome to Let's Do It! Please type \"help\" to see all possible commands");
