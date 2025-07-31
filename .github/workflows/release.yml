@@ -77,23 +77,11 @@ jobs:
 
       - name: Build macOS x86_64
         if: matrix.os == 'macos-latest'
-        uses: rust-build/rust-build.action@v1.4.5
-        with:
-          RUSTTARGET: x86_64-apple-darwin
-          TOOLCHAIN_VERSION: 1.81.0
-          ARCHIVE_TYPES: zip
-          ARCHIVE_NAME: lets-do-it-macos-x86_64
-          UPLOAD_MODE: release
+        run: cargo build --release --target x86_64-apple-darwin
 
       - name: Build macOS ARM64
         if: matrix.os == 'macos-latest'
-        uses: rust-build/rust-build.action@v1.4.5
-        with:
-          RUSTTARGET: aarch64-apple-darwin
-          TOOLCHAIN_VERSION: 1.81.0
-          ARCHIVE_TYPES: zip
-          ARCHIVE_NAME: lets-do-it-macos-arm64
-          UPLOAD_MODE: release
+        run: cargo build --release --target aarch64-apple-darwin
 
       - name: Build Windows x86_64
         if: matrix.os == 'ubuntu-latest'
