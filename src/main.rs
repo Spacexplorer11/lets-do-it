@@ -28,6 +28,7 @@ fn main() {
                     i += 1;
                 }
             }
+            "delete" => running = delete_task(&mut tasks, &mut rl),
             "" => {}
             "update" => running = update_task(&mut tasks, &mut rl),
             "+!$exit$!+" => {
@@ -106,6 +107,10 @@ fn update_task(tasks: &mut IndexMap<String, bool>, rl: &mut DefaultEditor) -> bo
         if new_value { "done" } else { "not done" }
     );
     tasks.insert(task, new_value);
+    true
+}
+
+fn delete_task(tasks: &mut IndexMap<String, bool>, rl: &mut DefaultEditor) -> bool {
     true
 }
 
