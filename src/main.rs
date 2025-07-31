@@ -106,7 +106,7 @@ fn update_task(tasks: &mut IndexMap<String, bool>, rl: &mut DefaultEditor) -> bo
     let old_value = tasks.get(&task).unwrap();
     let new_value = !old_value;
     println!(
-        "Successfully updated task {}! It's now marked as {}",
+        "Successfully updated task \"{}\"! It's now marked as {}",
         task,
         if new_value { "done" } else { "not done" }
     );
