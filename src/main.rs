@@ -71,6 +71,10 @@ fn add_task(tasks: &mut IndexMap<String, bool>, rl: &mut DefaultEditor) -> bool 
 }
 
 fn update_task(tasks: &mut IndexMap<String, bool>, rl: &mut DefaultEditor) -> bool {
+    if tasks.len() == 0 {
+        println!("You have no tasks to update!");
+        return true;
+    }
     println!("Which task would you like to update? (Pls type the number)");
     list_tasks(&tasks);
     let task = input(rl);
