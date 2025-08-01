@@ -77,8 +77,23 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           echo "Fetching commits..."
-          COMMITS=$(git log $LATEST_TAG..HEAD --pretty=format:"- %s" | tail -n 50)
-          PROMPT="Summarise the following commit messages into a clear and concise changelog:\n$COMMITS"
+
+          # Ensure fallback if no previous tag exists
+          if [ -z "$LATEST_TAG" ]; then
+            LATEST_TAG="v1.0.0"
+          fi
+
+          # Get all commit messages since the last tag
+          COMMITS=$(git log "$LATEST_TAG"..HEAD --pretty=format:"- %s")
+
+          # If no commits found (e.g., first tag), fetch all history
+          if [ -z "$COMMITS" ]; then
+            COMMITS=$(git log --pretty=format:"- %s")
+          fi
+
+          PROMPT=$(printf "Summarise the following commit messages into a clear and concise changelog:\n%s" "$COMMITS")
+          echo "PROMPT:"
+          echo "$PROMPT"
 
           JSON=$(jq -n \
             --arg prompt "$PROMPT" \
@@ -92,6 +107,7 @@ jobs:
           curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${{ secrets.GEMINI_API_KEY }}" \
             -H "Content-Type: application/json" \
             -d "$JSON" \
+            | tee full-response.json \
             | jq -r '.candidates[0].content.parts[0].text' > release-notes.md
 
       - name: Push new tag
