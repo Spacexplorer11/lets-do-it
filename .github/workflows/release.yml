@@ -116,17 +116,32 @@ jobs:
           ARCHIVE_NAME: lets-do-it-windows-x86_64
           UPLOAD_MODE: release
 
-      - name: Create GitHub Release and upload assets
+      - name: Zip Linux binary
         if: matrix.os == 'ubuntu-latest'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ env.NEW_TAG }}
-          name: Release ${{ env.NEW_TAG }}
-          body_path: release-notes.md
-          files: |
-            lets-do-it-linux-x86_64.zip
-            lets-do-it-windows-x86_64.zip
-            lets-do-it-macos-x86_64.zip
+        run: |
+          mkdir -p dist
+          cp target/x86_64-unknown-linux-musl/release/lets-do-it dist/
+          cd dist && zip ../lets-do-it-linux-x86_64.zip lets-do-it && cd ..
+          rm -rf dist
+
+      - name: Zip Windows binary
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          mkdir -p dist
+          cp target/x86_64-pc-windows-gnu/release/lets-do-it.exe dist/
+          cd dist && zip ../lets-do-it-windows-x86_64.zip lets-do-it.exe && cd ..
+          rm -rf dist
+
+      - name: Create GitHub Release with gh CLI
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          echo "Creating release $NEW_TAG..."
+          gh release create "$NEW_TAG" \
+            --title "Release $NEW_TAG" \
+            --notes-file release-notes.md \
+            lets-do-it-linux-x86_64.zip \
+            lets-do-it-windows-x86_64.zip \
+            lets-do-it-macos-x86_64.zip \
             lets-do-it-macos-arm64.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
