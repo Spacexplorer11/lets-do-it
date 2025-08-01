@@ -75,7 +75,6 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           rustup target add x86_64-pc-windows-gnu
-          rustup target add aarch64-pc-windows-gnu
 
       - name: Build & release all targets
         if: matrix.os == 'ubuntu-latest'
