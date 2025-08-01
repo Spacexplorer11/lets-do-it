@@ -201,3 +201,11 @@ fn input(rl: &mut DefaultEditor) -> String {
         }
     }
 }
+
+fn save_tasks(tasks: &IndexMap<String, bool>) -> Result<(), Box<dyn std::error::Error>> {
+    const FILE_PATH: &str = "tasks.txt";
+    let json_string = serde_json::to_string_pretty(&tasks)?;
+    fs::write(FILE_PATH, json_string)?;
+    println!("Successfully saved tasks to {}", FILE_PATH);
+    Ok(())
+}
