@@ -215,9 +215,16 @@ fn load_tasks() -> IndexMap<String, bool> {
     const FILE_PATH: &str = "tasks.txt";
     match fs::read_to_string(FILE_PATH) {
         Ok(json) => {
-            let data: IndexMap<String, bool> =
-                serde_json::from_str(&json).expect("Failed to parse JSON");
-            data
+            match serde_json::from_str(&json) {
+                Ok(data) => data,
+                Err(e) => {
+                    eprintln!(
+                        "Failed to parse saved tasks ({}). Starting with empty task list.",
+                        e
+                    );
+                    IndexMap::new()
+                }
+            }
         }
         Err(_) => {
             println!("No saved task file found, expected on first run");
