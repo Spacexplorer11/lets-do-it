@@ -1,10 +1,11 @@
 use indexmap::IndexMap;
-use rustyline::DefaultEditor;
 use rustyline::error::ReadlineError;
+use rustyline::DefaultEditor;
+use std::fs;
 
 fn main() {
     let mut rl = DefaultEditor::new().unwrap();
-    let mut tasks: IndexMap<String, bool> = IndexMap::new();
+    let mut tasks: IndexMap<String, bool> = load_tasks();
     let mut running = true;
     const COMMANDS: [&str; 6] = [
         "add - adds a task",
@@ -55,6 +56,9 @@ fn main() {
                 )
             }
         }
+    }
+    if let Err(e) = save_tasks(&tasks) {
+        eprintln!("Failed to save tasks: {}", e);
     }
 }
 fn add_task(tasks: &mut IndexMap<String, bool>, rl: &mut DefaultEditor) -> bool {
@@ -197,6 +201,36 @@ fn input(rl: &mut DefaultEditor) -> String {
         Err(err) => {
             eprintln!("Error occurred while taking user input {}", err);
             "+!$error$!+".parse().unwrap()
+        }
+    }
+}
+
+fn save_tasks(tasks: &IndexMap<String, bool>) -> Result<(), Box<dyn std::error::Error>> {
+    const FILE_PATH: &str = "tasks.txt";
+    let json_string = serde_json::to_string_pretty(&tasks)?;
+    fs::write(FILE_PATH, json_string)?;
+    println!("Successfully saved tasks to {}", FILE_PATH);
+    Ok(())
+}
+
+fn load_tasks() -> IndexMap<String, bool> {
+    const FILE_PATH: &str = "tasks.txt";
+    match fs::read_to_string(FILE_PATH) {
+        Ok(json) => {
+            match serde_json::from_str(&json) {
+                Ok(data) => data,
+                Err(e) => {
+                    eprintln!(
+                        "Failed to parse saved tasks ({}). Starting with empty task list.",
+                        e
+                    );
+                    IndexMap::new()
+                }
+            }
+        }
+        Err(_) => {
+            println!("No saved task file found, expected on first run");
+            IndexMap::new()
         }
     }
 }
