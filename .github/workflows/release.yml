@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  release:
+  build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -25,6 +25,7 @@ jobs:
         run: cargo test --all --locked
 
       - name: Determine latest tag
+        if: matrix.os == 'ubuntu-latest'
         id: tag
         run: |
           latest=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || echo "v0.0.0")
@@ -32,9 +33,10 @@ jobs:
           echo "LATEST_TAG=$latest" >> $GITHUB_OUTPUT
 
       - name: Decide next version
+        if: matrix.os == 'ubuntu-latest'
         id: semver
         run: |
-          [ -z "$LATEST_TAG" ] && LATEST_TAG="v0.0.0"
+          [ -z "$LATEST_TAG" ] && LATEST_TAG="v1.0.0"
           bump="patch"
           if git log "$LATEST_TAG"..HEAD | grep -q "BREAKING CHANGE:"; then
             bump="major"
@@ -57,10 +59,12 @@ jobs:
           echo "NEW_TAG=$NEW_TAG" >> $GITHUB_OUTPUT
 
       - name: Generate release notes
+        if: matrix.os == 'ubuntu-latest'
         run: |
           git log $LATEST_TAG..HEAD --pretty=format:"- %s" > release-notes.md
 
       - name: Push new tag
+        if: matrix.os == 'ubuntu-latest'
         run: |
           git tag $NEW_TAG
           git push origin $NEW_TAG
@@ -94,6 +98,14 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: cargo build --release --target aarch64-apple-darwin
 
+      - name: Archive macOS x86_64 binary
+        if: matrix.os == 'macos-latest'
+        run: zip lets-do-it-macos-x86_64.zip target/x86_64-apple-darwin/release/lets-do-it
+
+      - name: Archive macOS ARM64 binary
+        if: matrix.os == 'macos-latest'
+        run: zip lets-do-it-macos-arm64.zip target/aarch64-apple-darwin/release/lets-do-it
+
       - name: Build Windows x86_64
         if: matrix.os == 'ubuntu-latest'
         uses: rust-build/rust-build.action@v1.4.5
@@ -104,11 +116,17 @@ jobs:
           ARCHIVE_NAME: lets-do-it-windows-x86_64
           UPLOAD_MODE: release
 
-      - name: Create GitHub Release
+      - name: Create GitHub Release and upload assets
+        if: matrix.os == 'ubuntu-latest'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.NEW_TAG }}
           name: Release ${{ env.NEW_TAG }}
           body_path: release-notes.md
+          files: |
+            lets-do-it-linux-x86_64.zip
+            lets-do-it-windows-x86_64.zip
+            lets-do-it-macos-x86_64.zip
+            lets-do-it-macos-arm64.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
