@@ -57,7 +57,9 @@ fn main() {
             }
         }
     }
-    save_tasks(&tasks).unwrap();
+    if let Err(e) = save_tasks(&tasks) {
+        eprintln!("Failed to save tasks: {}", e);
+    }
 }
 fn add_task(tasks: &mut IndexMap<String, bool>, rl: &mut DefaultEditor) -> bool {
     println!("Please enter the task name:");
