@@ -209,3 +209,19 @@ fn save_tasks(tasks: &IndexMap<String, bool>) -> Result<(), Box<dyn std::error::
     println!("Successfully saved tasks to {}", FILE_PATH);
     Ok(())
 }
+
+fn load_tasks() -> IndexMap<String, bool> {
+    const FILE_PATH: &str = "tasks.txt";
+    match fs::read_to_string(FILE_PATH) {
+        Ok(json) => {
+            let data: IndexMap<String, bool> =
+                serde_json::from_str(&json).expect("Failed to parse JSON");
+            println!("Loaded tasks from {}:\n{:#?}", FILE_PATH, data);
+            data
+        }
+        Err(_) => {
+            println!("No saved task file found, expected on first run");
+            IndexMap::new()
+        }
+    }
+}
