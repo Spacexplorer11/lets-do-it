@@ -73,14 +73,26 @@ jobs:
           echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
           echo "NEW_TAG=$NEW_TAG" >> $GITHUB_OUTPUT
 
-      - name: Install git-cliff
-        if: matrix.os == 'ubuntu-latest'
-        run: cargo install git-cliff --version 2.6.1
-
-      - name: Generate release notes with git-cliff
+      - name: Generate release notes with Gemini
         if: matrix.os == 'ubuntu-latest'
         run: |
-          git cliff --tag $NEW_TAG > release-notes.md
+          echo "Fetching commits..."
+          COMMITS=$(git log $LATEST_TAG..HEAD --pretty=format:"- %s" | tail -n 50)
+          PROMPT="Summarise the following commit messages into a clear and concise changelog:\n$COMMITS"
+
+          JSON=$(jq -n \
+            --arg prompt "$PROMPT" \
+            '{
+              contents: [{
+                role: "user",
+                parts: [{ text: $prompt }]
+              }]
+            }')
+
+          curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${{ secrets.GEMINI_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "$JSON" \
+            | jq -r '.candidates[0].content.parts[0].text' > release-notes.md
 
       - name: Push new tag
         if: matrix.os == 'ubuntu-latest'
