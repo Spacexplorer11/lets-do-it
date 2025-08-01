@@ -2,7 +2,7 @@
 ## What's this?
 Let's do it is a Rust CLI tool for your to-do tasks. 
 As of now, it doesn't have much uniqueness, its just your run-of-the-mill CLI to-do list.
-It does 
+It does now save your tasks in tasks.txt so they persist between runs!
 Simple functions:
 - Add
 - Update
