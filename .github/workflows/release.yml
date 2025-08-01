@@ -105,16 +105,6 @@ jobs:
           ARCHIVE_NAME: lets-do-it-windows-x86_64
           UPLOAD_MODE: release
 
-      - name: Build Windows ARM64
-        if: matrix.os == 'ubuntu-latest'
-        uses: rust-build/rust-build.action@v1.4.5
-        with:
-          RUSTTARGET: aarch64-pc-windows-gnu
-          TOOLCHAIN_VERSION: 1.81.0
-          ARCHIVE_TYPES: zip
-          ARCHIVE_NAME: lets-do-it-windows-arm64
-          UPLOAD_MODE: release
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
