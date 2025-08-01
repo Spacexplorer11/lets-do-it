@@ -6,6 +6,7 @@ fn main() {
     let mut rl = DefaultEditor::new().unwrap();
     let mut tasks: IndexMap<String, bool> = IndexMap::new();
     let mut running = true;
+    const FILE_PATH: &str = "tasks.txt";
     const COMMANDS: [&str; 6] = [
         "add - adds a task",
         "list - lists the tasks",
