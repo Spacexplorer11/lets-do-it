@@ -24,6 +24,17 @@ jobs:
       - name: Run tests
         run: cargo test --all --locked
 
+      - name: Ensure initial tag exists if needed
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          # If no tags exist, create v1.0.0
+          if ! git tag | grep -q '^v[0-9]\+\.[0-9]\+\.[0-9]\+$'; then
+            git tag v1.0.0
+            git push origin v1.0.0
+            echo "LATEST_TAG=v1.0.0" >> $GITHUB_ENV
+            echo "LATEST_TAG=v1.0.0" >> $GITHUB_OUTPUT
+          fi
+
       - name: Determine latest tag
         if: matrix.os == 'ubuntu-latest'
         id: tag
