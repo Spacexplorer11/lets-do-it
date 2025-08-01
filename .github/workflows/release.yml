@@ -104,8 +104,9 @@ jobs:
               }]
             }')
 
-          curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${{ secrets.GEMINI_API_KEY }}" \
+          curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent" \
             -H "Content-Type: application/json" \
+            -H "X-goog-api-key: ${{ secrets.GEMINI_API_KEY }}" \
             -d "$JSON" \
             | tee full-response.json \
             | jq -r '.candidates[0].content.parts[0].text' > release-notes.md
