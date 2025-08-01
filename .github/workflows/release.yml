@@ -29,6 +29,10 @@ jobs:
         id: tag
         run: |
           latest=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || echo "v0.0.0")
+          latest=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1)
+          if [ -z "$latest" ]; then
+          latest="v1.0.0"
+          fi
           echo "LATEST_TAG=$latest" >> $GITHUB_ENV
           echo "LATEST_TAG=$latest" >> $GITHUB_OUTPUT
 
@@ -80,15 +84,11 @@ jobs:
         run: |
           rustup target add x86_64-pc-windows-gnu
 
-      - name: Build & release all targets
+      - name: Add musl target and build Linux binary
         if: matrix.os == 'ubuntu-latest'
-        uses: rust-build/rust-build.action@v1.4.5
-        with:
-          RUSTTARGET: x86_64-unknown-linux-musl
-          TOOLCHAIN_VERSION: 1.81.0
-          ARCHIVE_TYPES: zip
-          ARCHIVE_NAME: lets-do-it-linux-x86_64
-          UPLOAD_MODE: release
+        run: |
+          rustup target add x86_64-unknown-linux-musl
+          cargo build --release --target x86_64-unknown-linux-musl
 
       - name: Build macOS x86_64
         if: matrix.os == 'macos-latest'
@@ -108,13 +108,10 @@ jobs:
 
       - name: Build Windows x86_64
         if: matrix.os == 'ubuntu-latest'
-        uses: rust-build/rust-build.action@v1.4.5
-        with:
-          RUSTTARGET: x86_64-pc-windows-gnu
-          TOOLCHAIN_VERSION: 1.81.0
-          ARCHIVE_TYPES: zip
-          ARCHIVE_NAME: lets-do-it-windows-x86_64
-          UPLOAD_MODE: release
+        run: |
+          sudo apt-get update && sudo apt-get install -y mingw-w64
+          rustup target add x86_64-pc-windows-gnu
+          cargo build --release --target x86_64-pc-windows-gnu
 
       - name: Zip Linux binary
         if: matrix.os == 'ubuntu-latest'
