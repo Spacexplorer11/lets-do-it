@@ -1,12 +1,12 @@
 use indexmap::IndexMap;
-use rustyline::DefaultEditor;
 use rustyline::error::ReadlineError;
+use rustyline::DefaultEditor;
+use std::fs;
 
 fn main() {
     let mut rl = DefaultEditor::new().unwrap();
-    let mut tasks: IndexMap<String, bool> = IndexMap::new();
+    let mut tasks: IndexMap<String, bool> = load_tasks();
     let mut running = true;
-    const FILE_PATH: &str = "tasks.txt";
     const COMMANDS: [&str; 6] = [
         "add - adds a task",
         "list - lists the tasks",
@@ -57,6 +57,7 @@ fn main() {
             }
         }
     }
+    save_tasks(&tasks).unwrap();
 }
 fn add_task(tasks: &mut IndexMap<String, bool>, rl: &mut DefaultEditor) -> bool {
     println!("Please enter the task name:");
@@ -216,7 +217,6 @@ fn load_tasks() -> IndexMap<String, bool> {
         Ok(json) => {
             let data: IndexMap<String, bool> =
                 serde_json::from_str(&json).expect("Failed to parse JSON");
-            println!("Loaded tasks from {}:\n{:#?}", FILE_PATH, data);
             data
         }
         Err(_) => {
