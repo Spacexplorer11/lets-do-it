@@ -2,6 +2,7 @@
 ## What's this?
 Let's do it is a Rust CLI tool for your to-do tasks. 
 As of now, it doesn't have much uniqueness, its just your run-of-the-mill CLI to-do list.
+It does 
 Simple functions:
 - Add
 - Update
@@ -17,10 +18,10 @@ or something like cargo run -- --list. I'll use clap (the library) for this.
 Check cargo.toml!  
 But right now, I use rustyline for input, and indexmap for well the IndexMap.
 
-<!-- Uncomment when you have made a release and maybe add a link!
+
 ## How can I use it?
-Just download the latest release for your OS from the Github Releases!  
+Just download the [latest release](https://github.com/Spacexplorer11/lets-do-it/releases/latest) for your OS from the Github Releases!  
 Rust compiles to native binaries making it super simple for you!
--->
+
 
 ## Please consider leaving a star
