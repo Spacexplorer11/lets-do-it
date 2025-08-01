@@ -73,10 +73,14 @@ jobs:
           echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
           echo "NEW_TAG=$NEW_TAG" >> $GITHUB_OUTPUT
 
-      - name: Generate release notes
+      - name: Install git-cliff
+        if: matrix.os == 'ubuntu-latest'
+        run: cargo install git-cliff
+
+      - name: Generate release notes with git-cliff
         if: matrix.os == 'ubuntu-latest'
         run: |
-          git log $LATEST_TAG..HEAD --pretty=format:"- %s" > release-notes.md
+          git cliff --tag $NEW_TAG > release-notes.md
 
       - name: Push new tag
         if: matrix.os == 'ubuntu-latest'
