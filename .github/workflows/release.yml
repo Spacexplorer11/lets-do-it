@@ -106,6 +106,20 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: zip lets-do-it-macos-arm64.zip target/aarch64-apple-darwin/release/lets-do-it
 
+      - name: Upload macOS x86_64 zip
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: lets-do-it-macos-x86_64.zip
+          path: lets-do-it-macos-x86_64.zip
+
+      - name: Upload macOS ARM64 zip
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: lets-do-it-macos-arm64.zip
+          path: lets-do-it-macos-arm64.zip
+
       - name: Build Windows x86_64
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -128,6 +142,18 @@ jobs:
           cp target/x86_64-pc-windows-gnu/release/lets-do-it.exe dist/
           cd dist && zip ../lets-do-it-windows-x86_64.zip lets-do-it.exe && cd ..
           rm -rf dist
+
+      - name: Download macOS x86_64 zip
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/download-artifact@v4
+        with:
+          name: lets-do-it-macos-x86_64.zip
+
+      - name: Download macOS ARM64 zip
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/download-artifact@v4
+        with:
+          name: lets-do-it-macos-arm64.zip
 
       - name: Create GitHub Release with gh CLI
         if: matrix.os == 'ubuntu-latest'
