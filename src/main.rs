@@ -12,7 +12,7 @@ fn main() {
         "list - lists the tasks",
         "exit - quits the program",
         "help - prints this message",
-        "update - updates if a task is done or not!",
+        "update - updates if a task is done or not",
         "delete - deletes a task",
     ];
 
@@ -34,6 +34,7 @@ fn main() {
             "list" => list_tasks(&tasks),
             "help" => {
                 let mut i = 1;
+                println!("Here are all the available commands and what they do!");
                 for command in COMMANDS {
                     println!("{}. {}", i, command);
                     i += 1;
@@ -216,18 +217,16 @@ fn save_tasks(tasks: &IndexMap<String, bool>) -> Result<(), Box<dyn std::error::
 fn load_tasks() -> IndexMap<String, bool> {
     const FILE_PATH: &str = "tasks.txt";
     match fs::read_to_string(FILE_PATH) {
-        Ok(json) => {
-            match serde_json::from_str(&json) {
-                Ok(data) => data,
-                Err(e) => {
-                    eprintln!(
-                        "Failed to parse saved tasks ({}). Starting with empty task list.",
-                        e
-                    );
-                    IndexMap::new()
-                }
+        Ok(json) => match serde_json::from_str(&json) {
+            Ok(data) => data,
+            Err(e) => {
+                eprintln!(
+                    "Failed to parse saved tasks ({}). Starting with empty task list.",
+                    e
+                );
+                IndexMap::new()
             }
-        }
+        },
         Err(_) => {
             println!("No saved task file found, expected on first run");
             IndexMap::new()
