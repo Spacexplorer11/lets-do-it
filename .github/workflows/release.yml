@@ -15,36 +15,69 @@ jobs:
 
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: 1.81.0
+          toolchain: 1.85.0
           override: true
 
+      - name: Check Cargo version bump (macOS)
+        id: version
+        run: |
+          set -e
+          CARGO_VERSION=$(grep -m1 '^version\s*=\s*"' Cargo.toml | sed -E 's/.*"([0-9]+\.[0-9]+\.[0-9]+)".*/\1/')
+          LATEST_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || true)
+          SHOULD_RELEASE=false
+          if [ -z "$LATEST_TAG" ]; then
+            SHOULD_RELEASE=true
+          else
+            LATEST_VER=${LATEST_TAG#v}
+            if [ "v$CARGO_VERSION" = "$LATEST_TAG" ]; then
+              SHOULD_RELEASE=false
+            else
+              top=$(printf '%s\n' "$LATEST_VER" "$CARGO_VERSION" | sort -V | tail -n1)
+              if [ "$top" = "$CARGO_VERSION" ]; then
+                SHOULD_RELEASE=true
+              fi
+            fi
+          fi
+          echo "CARGO_VERSION=$CARGO_VERSION" >> $GITHUB_ENV
+          echo "LATEST_TAG=${LATEST_TAG:-}" >> $GITHUB_ENV
+          echo "NEW_TAG=v$CARGO_VERSION" >> $GITHUB_ENV
+          echo "SHOULD_RELEASE=$SHOULD_RELEASE" >> $GITHUB_ENV
+
       - name: Run tests
+        if: env.SHOULD_RELEASE == 'true'
         run: cargo test --all --locked
 
       - name: Install required Rust targets (macOS)
+        if: env.SHOULD_RELEASE == 'true'
         run: |
           rustup target add x86_64-apple-darwin
           rustup target add aarch64-apple-darwin
 
       - name: Build macOS x86_64
+        if: env.SHOULD_RELEASE == 'true'
         run: cargo build --release --target x86_64-apple-darwin
 
       - name: Build macOS ARM64
+        if: env.SHOULD_RELEASE == 'true'
         run: cargo build --release --target aarch64-apple-darwin
 
       - name: Archive macOS x86_64 binary
+        if: env.SHOULD_RELEASE == 'true'
         run: zip lets-do-it-macos-x86_64.zip target/x86_64-apple-darwin/release/lets-do-it
 
       - name: Archive macOS ARM64 binary
+        if: env.SHOULD_RELEASE == 'true'
         run: zip lets-do-it-macos-arm64.zip target/aarch64-apple-darwin/release/lets-do-it
 
       - name: Upload macOS x86_64 zip
+        if: env.SHOULD_RELEASE == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: lets-do-it-macos-x86_64
           path: lets-do-it-macos-x86_64.zip
 
       - name: Upload macOS ARM64 zip
+        if: env.SHOULD_RELEASE == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: lets-do-it-macos-arm64
@@ -53,7 +86,8 @@ jobs:
   build-linux-windows:
     runs-on: ubuntu-latest
     outputs:
-      new-tag: ${{ steps.semver.outputs.NEW_TAG }}
+      new-tag: ${{ steps.version.outputs.NEW_TAG }}
+      should-release: ${{ steps.version.outputs.SHOULD_RELEASE }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -61,69 +95,54 @@ jobs:
 
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: 1.81.0
+          toolchain: 1.85.0
           override: true
 
+      - name: Check Cargo version bump (Linux/Windows)
+        id: version
+        run: |
+          set -e
+          CARGO_VERSION=$(grep -m1 '^version\s*=\s*"' Cargo.toml | sed -E 's/.*"([0-9]+\.[0-9]+\.[0-9]+)".*/\1/')
+          LATEST_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || true)
+          SHOULD_RELEASE=false
+          if [ -z "$LATEST_TAG" ]; then
+            SHOULD_RELEASE=true
+          else
+            LATEST_VER=${LATEST_TAG#v}
+            if [ "v$CARGO_VERSION" = "$LATEST_TAG" ]; then
+              SHOULD_RELEASE=false
+            else
+              top=$(printf '%s\n' "$LATEST_VER" "$CARGO_VERSION" | sort -V | tail -n1)
+              if [ "$top" = "$CARGO_VERSION" ]; then
+                SHOULD_RELEASE=true
+              fi
+            fi
+          fi
+          echo "CARGO_VERSION=$CARGO_VERSION" >> $GITHUB_ENV
+          echo "LATEST_TAG=${LATEST_TAG:-}" >> $GITHUB_ENV
+          echo "NEW_TAG=v$CARGO_VERSION" >> $GITHUB_ENV
+          echo "SHOULD_RELEASE=$SHOULD_RELEASE" >> $GITHUB_ENV
+          echo "NEW_TAG=v$CARGO_VERSION" >> $GITHUB_OUTPUT
+          echo "SHOULD_RELEASE=$SHOULD_RELEASE" >> $GITHUB_OUTPUT
+
       - name: Run tests
+        if: env.SHOULD_RELEASE == 'true'
         run: cargo test --all --locked
 
-      - name: Ensure initial tag exists if needed
-        run: |
-          # If no tags exist, create v1.0.0
-          if ! git tag | grep -q '^v[0-9]\+\.[0-9]\+\.[0-9]\+$'; then
-            git tag v1.0.0
-            git push origin v1.0.0
-            echo "LATEST_TAG=v1.0.0" >> $GITHUB_ENV
-          fi
-
-      - name: Determine latest tag
-        id: tag
-        run: |
-          latest=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || echo "v1.0.0")
-          if [ -z "$latest" ]; then
-            latest="v1.0.0"
-          fi
-          echo "LATEST_TAG=$latest" >> $GITHUB_ENV
-
-      - name: Decide next version
-        id: semver
-        run: |
-          [ -z "$LATEST_TAG" ] && LATEST_TAG="v1.0.0"
-          bump="patch"
-          if git log "$LATEST_TAG"..HEAD | grep -q "BREAKING CHANGE:"; then
-            bump="major"
-          elif git log "$LATEST_TAG"..HEAD | grep -q "^feat:"; then
-            bump="minor"
-          fi
-
-          IFS='.' read -r MA MI PS <<< "${LATEST_TAG#v}"
-
-          if [ "$bump" = "major" ]; then
-            MA=$((MA+1)); MI=0; PS=0
-          elif [ "$bump" = "minor" ]; then
-            MI=$((MI+1)); PS=0
-          else
-            PS=$((PS+1))
-          fi
-
-          NEW_TAG="v$MA.$MI.$PS"
-          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
-          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_OUTPUT
-
       - name: Generate release notes with Gemini
+        if: env.SHOULD_RELEASE == 'true'
         run: |
           echo "Fetching commits..."
 
           # Ensure fallback if no previous tag exists
           if [ -z "$LATEST_TAG" ]; then
-            LATEST_TAG="v1.0.0"
+            # Leave LATEST_TAG empty; we'll fetch all history below if needed
+            LATEST_TAG=""
           fi
 
-          # Get all commit messages since the last tag
-          COMMITS=$(git log "$LATEST_TAG"..HEAD --pretty=format:"- %s")
-
-          # If no commits found (e.g., first tag), fetch all history
-          if [ -z "$COMMITS" ]; then
+          if [ -n "$LATEST_TAG" ]; then
+            COMMITS=$(git log "$LATEST_TAG"..HEAD --pretty=format:"- %s")
+          else
             COMMITS=$(git log --pretty=format:"- %s")
           fi
 
@@ -148,25 +167,30 @@ jobs:
             | jq -r '.candidates[0].content.parts[0].text' > release-notes.md
 
       - name: Push new tag
+        if: env.SHOULD_RELEASE == 'true'
         run: |
           git tag $NEW_TAG
           git push origin $NEW_TAG
 
       - name: Install required Rust targets (Linux and Windows)
+        if: env.SHOULD_RELEASE == 'true'
         run: |
           rustup target add x86_64-unknown-linux-musl
           rustup target add x86_64-pc-windows-gnu
 
       - name: Build Linux binary
+        if: env.SHOULD_RELEASE == 'true'
         run: |
           cargo build --release --target x86_64-unknown-linux-musl
 
       - name: Build Windows x86_64
+        if: env.SHOULD_RELEASE == 'true'
         run: |
           sudo apt-get update && sudo apt-get install -y mingw-w64
           cargo build --release --target x86_64-pc-windows-gnu
 
       - name: Zip Linux binary
+        if: env.SHOULD_RELEASE == 'true'
         run: |
           mkdir -p dist
           cp target/x86_64-unknown-linux-musl/release/lets-do-it dist/
@@ -174,6 +198,7 @@ jobs:
           rm -rf dist
 
       - name: Zip Windows binary
+        if: env.SHOULD_RELEASE == 'true'
         run: |
           mkdir -p dist
           cp target/x86_64-pc-windows-gnu/release/lets-do-it.exe dist/
@@ -181,18 +206,21 @@ jobs:
           rm -rf dist
 
       - name: Upload Linux zip
+        if: env.SHOULD_RELEASE == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: lets-do-it-linux-x86_64
           path: lets-do-it-linux-x86_64.zip
 
       - name: Upload Windows zip
+        if: env.SHOULD_RELEASE == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: lets-do-it-windows-x86_64
           path: lets-do-it-windows-x86_64.zip
 
       - name: Upload release notes
+        if: env.SHOULD_RELEASE == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: release-notes
@@ -201,6 +229,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     needs: [build-macos, build-linux-windows]
+    if: needs.build-linux-windows.outputs.should-release == 'true'
     steps:
       - uses: actions/checkout@v4
 
