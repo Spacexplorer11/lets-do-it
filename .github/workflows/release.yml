@@ -88,6 +88,8 @@ jobs:
 
   build-linux-windows:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     outputs:
       new-tag: ${{ steps.version.outputs.NEW_TAG }}
       should-release: ${{ steps.version.outputs.SHOULD_RELEASE }}
