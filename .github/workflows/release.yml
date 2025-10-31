@@ -1,5 +1,8 @@
 name: Release Let's Do It
 
+permissions:
+  contents: read
+
 on:
   push:
     branches:
@@ -85,6 +88,8 @@ jobs:
 
   build-linux-windows:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     outputs:
       new-tag: ${{ steps.version.outputs.NEW_TAG }}
       should-release: ${{ steps.version.outputs.SHOULD_RELEASE }}
@@ -228,6 +233,8 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     needs: [build-macos, build-linux-windows]
     if: needs.build-linux-windows.outputs.should-release == 'true'
     steps:
