@@ -6,5 +6,5 @@ rust-version = "1.85"
 
 [dependencies]
 rustyline = "17.0.2"
-indexmap = { version = "2.12.0", features = ["serde"] }
+indexmap = { version = "2.12.1", features = ["serde"] }
 serde_json = "1.0.145"
