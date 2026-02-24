@@ -1,6 +1,6 @@
 use indexmap::IndexMap;
-use rustyline::error::ReadlineError;
 use rustyline::DefaultEditor;
+use rustyline::error::ReadlineError;
 use std::fs;
 
 fn main() {
@@ -45,6 +45,7 @@ fn main() {
             "update" => running = update_task(&mut tasks, &mut rl),
             "+!$exit$!+" => {
                 println!("Exiting and Saving!");
+                save_tasks(&tasks);
                 break;
             }
             "+!$interrupted$!+" => {
@@ -57,9 +58,6 @@ fn main() {
                 )
             }
         }
-    }
-    if let Err(e) = save_tasks(&tasks) {
-        eprintln!("Failed to save tasks: {}", e);
     }
 }
 fn add_task(tasks: &mut IndexMap<String, bool>, rl: &mut DefaultEditor) -> bool {
@@ -206,12 +204,14 @@ fn input(rl: &mut DefaultEditor) -> String {
     }
 }
 
-fn save_tasks(tasks: &IndexMap<String, bool>) -> Result<(), Box<dyn std::error::Error>> {
+fn save_tasks(tasks: &IndexMap<String, bool>) {
     const FILE_PATH: &str = "tasks.txt";
-    let json_string = serde_json::to_string_pretty(&tasks)?;
-    fs::write(FILE_PATH, json_string)?;
-    println!("Successfully saved tasks to {}", FILE_PATH);
-    Ok(())
+    let json_string = serde_json::to_string_pretty(&tasks);
+    let write = fs::write(FILE_PATH, json_string.unwrap().as_bytes());
+    match write {
+        Ok(_) => println!("Successfully saved tasks to {}", FILE_PATH),
+        Err(_) => eprintln!("Failed to save tasks."),
+    }
 }
 
 fn load_tasks() -> IndexMap<String, bool> {
